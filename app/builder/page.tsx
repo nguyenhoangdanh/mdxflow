@@ -26,11 +26,13 @@ import {
 } from '@/lib/mermaidUtils';
 import { downloadText, copyToClipboard } from '@/lib/file';
 import { setPendingInsert } from '@/lib/storage';
+import { useToast } from '@/hooks/use-toast';
 
 const nodeTypes = ['start', 'process', 'decision', 'io', 'end'] as const;
 
 export default function BuilderPage() {
   const router = useRouter();
+  const { toast } = useToast();
   const [nodes, setNodes, onNodesChange] = useNodesState([]);
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [selectedNode, setSelectedNode] = useState<string | null>(null);
@@ -144,19 +146,34 @@ export default function BuilderPage() {
   const handleCopyMermaid = async () => {
     try {
       await copyToClipboard(mermaidOutput);
-      alert('Mermaid code copied to clipboard!');
+      toast({
+        title: "Copied!",
+        description: "Mermaid code copied to clipboard",
+      });
     } catch (error) {
       console.error('Error copying to clipboard:', error);
-      alert('Failed to copy to clipboard');
+      toast({
+        title: "Error",
+        description: "Failed to copy to clipboard",
+        variant: "destructive",
+      });
     }
   };
 
   const handleDownloadMermaid = () => {
     try {
       downloadText('flowchart.mmd', mermaidOutput);
+      toast({
+        title: "Downloaded!",
+        description: "flowchart.mmd has been downloaded",
+      });
     } catch (error) {
       console.error('Error downloading file:', error);
-      alert('Failed to download file');
+      toast({
+        title: "Error",
+        description: "Failed to download file",
+        variant: "destructive",
+      });
     }
   };
 
@@ -164,10 +181,18 @@ export default function BuilderPage() {
     try {
       const markdownContent = `# Flowchart\n\n\`\`\`mermaid\n${mermaidOutput}\n\`\`\`\n`;
       setPendingInsert(markdownContent);
+      toast({
+        title: "Success!",
+        description: "Flowchart will be inserted into new document",
+      });
       router.push('/editor/new');
     } catch (error) {
       console.error('Error setting pending insert:', error);
-      alert('Failed to prepare document insertion');
+      toast({
+        title: "Error",
+        description: "Failed to prepare document insertion",
+        variant: "destructive",
+      });
     }
   };
 

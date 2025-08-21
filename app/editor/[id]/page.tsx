@@ -7,6 +7,7 @@ import { getDocument, saveDocument, deleteDocument, duplicateDocument, type Docu
 import { downloadText, copyToClipboard, getFileExtension, sanitizeFilename } from '@/lib/file';
 import MarkdownPreview from '@/components/MarkdownPreview';
 import MDXPreview from '@/components/MDXPreview';
+import { useToast } from '@/hooks/use-toast';
 
 interface EditorPageProps {
   params: Promise<{ id: string }>;
@@ -14,6 +15,7 @@ interface EditorPageProps {
 
 export default function EditorPage({ params }: EditorPageProps) {
   const router = useRouter();
+  const { toast } = useToast();
   const [document, setDocument] = useState<DocumentData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
@@ -85,10 +87,17 @@ export default function EditorPage({ params }: EditorPageProps) {
     
     try {
       await copyToClipboard(document.content);
-      alert('Content copied to clipboard!');
+      toast({
+        title: "Copied!",
+        description: "Content copied to clipboard",
+      });
     } catch (error) {
       console.error('Error copying to clipboard:', error);
-      alert('Failed to copy to clipboard');
+      toast({
+        title: "Error",
+        description: "Failed to copy to clipboard",
+        variant: "destructive",
+      });
     }
   };
 
@@ -98,9 +107,17 @@ export default function EditorPage({ params }: EditorPageProps) {
     try {
       const filename = `${sanitizeFilename(document.title)}${getFileExtension(document.type)}`;
       downloadText(filename, document.content);
+      toast({
+        title: "Downloaded!",
+        description: `${filename} has been downloaded`,
+      });
     } catch (error) {
       console.error('Error downloading file:', error);
-      alert('Failed to download file');
+      toast({
+        title: "Error",
+        description: "Failed to download file",
+        variant: "destructive",
+      });
     }
   };
 
@@ -109,10 +126,18 @@ export default function EditorPage({ params }: EditorPageProps) {
     
     try {
       const duplicated = duplicateDocument(document.id);
+      toast({
+        title: "Duplicated!",
+        description: "Document has been duplicated",
+      });
       router.push(`/editor/${duplicated.id}`);
     } catch (error) {
       console.error('Error duplicating document:', error);
-      alert('Failed to duplicate document');
+      toast({
+        title: "Error",
+        description: "Failed to duplicate document",
+        variant: "destructive",
+      });
     }
   };
 
@@ -122,10 +147,18 @@ export default function EditorPage({ params }: EditorPageProps) {
     if (confirm(`Are you sure you want to delete "${document.title}"?`)) {
       try {
         deleteDocument(document.id);
+        toast({
+          title: "Deleted!",
+          description: "Document has been deleted",
+        });
         router.push('/documents');
       } catch (error) {
         console.error('Error deleting document:', error);
-        alert('Failed to delete document');
+        toast({
+          title: "Error",
+          description: "Failed to delete document",
+          variant: "destructive",
+        });
       }
     }
   };
