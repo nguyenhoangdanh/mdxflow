@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useState } from "react";
 import { CommandPalette } from "@/components/CommandPalette";
 import { Toaster } from "@/components/ui/toaster";
+import { ThemeToggle } from "@/components/ThemeToggle";
+import { structuredData } from "@/lib/metadata";
 
 interface RootLayoutProps {
   children: React.ReactNode;
@@ -15,6 +17,14 @@ export default function RootLayout({ children }: RootLayoutProps) {
 
   return (
     <html lang="en">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify(structuredData),
+          }}
+        />
+      </head>
       <body className="antialiased min-h-screen bg-background font-sans">
         <header className="bg-background shadow-sm border-b">
           <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -37,6 +47,7 @@ export default function RootLayout({ children }: RootLayoutProps) {
                 >
                   Flow Builder
                 </Link>
+                <ThemeToggle />
                 <button
                   onClick={() => setCommandPaletteOpen(true)}
                   className="text-muted-foreground hover:text-foreground px-3 py-2 rounded-md text-sm font-medium"

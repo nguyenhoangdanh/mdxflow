@@ -8,6 +8,7 @@ import { downloadText, copyToClipboard, getFileExtension, sanitizeFilename } fro
 import MarkdownPreview from '@/components/MarkdownPreview';
 import MDXPreview from '@/components/MDXPreview';
 import { useToast } from '@/hooks/use-toast';
+import { useKeyboardShortcuts, KEYBOARD_SHORTCUTS } from '@/hooks/use-keyboard-shortcuts';
 
 interface EditorPageProps {
   params: Promise<{ id: string }>;
@@ -167,6 +168,30 @@ export default function EditorPage({ params }: EditorPageProps) {
     if (!document) return;
     setDocument({ ...document, ...updates });
   };
+
+  // Keyboard shortcuts
+  useKeyboardShortcuts([
+    {
+      ...KEYBOARD_SHORTCUTS.SAVE,
+      callback: handleSave,
+    },
+    {
+      ...KEYBOARD_SHORTCUTS.TOGGLE_PREVIEW,
+      callback: () => setShowPreview(!showPreview),
+    },
+    {
+      ...KEYBOARD_SHORTCUTS.DUPLICATE,
+      callback: handleDuplicate,
+    },
+    {
+      ...KEYBOARD_SHORTCUTS.DELETE,
+      callback: handleDelete,
+    },
+    {
+      ...KEYBOARD_SHORTCUTS.FLOW_BUILDER,
+      callback: () => router.push('/builder'),
+    },
+  ]);
 
   if (isLoading) {
     return (

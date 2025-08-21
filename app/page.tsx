@@ -1,4 +1,11 @@
 import Link from "next/link";
+import { generatePageMetadata } from "@/lib/metadata";
+
+export const metadata = generatePageMetadata({
+  title: 'Home',
+  description: 'A powerful Markdown/MDX editor with an integrated drag-and-drop flowchart builder. Create, edit, and visualize your ideas seamlessly with React Flow and Mermaid.',
+  path: '/',
+});
 
 export default function Home() {
   return (
