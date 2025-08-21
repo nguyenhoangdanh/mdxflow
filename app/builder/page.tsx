@@ -50,7 +50,7 @@ export default function BuilderPage() {
       id: edge.id,
       source: edge.source,
       target: edge.target,
-      label: typeof edge.label === 'string' ? edge.label : undefined,
+      ...(edge.label && typeof edge.label === 'string' ? { label: edge.label } : {}),
     }));
 
     const mermaid = graphToMermaid(flowNodes, flowEdges, direction);
@@ -129,7 +129,7 @@ export default function BuilderPage() {
     setSelectedNode(null);
   };
 
-  const onNodeClick = (event: React.MouseEvent, node: Node) => {
+  const onNodeClick = (_event: React.MouseEvent, node: Node) => {
     setSelectedNode(node.id);
   };
 
