@@ -1,5 +1,7 @@
 import type { Metadata } from 'next'
 
+const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
+
 export const defaultMetadata: Metadata = {
   title: {
     default: 'MDXFlow - Markdown & Flowchart Editor',
@@ -26,7 +28,7 @@ export const defaultMetadata: Metadata = {
     address: false,
     telephone: false,
   },
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'),
+  metadataBase: new URL(baseUrl),
   alternates: {
     canonical: '/',
   },
@@ -82,7 +84,7 @@ export function generatePageMetadata({
 }): Metadata {
   const pageTitle = title ? `${title} | MDXFlow` : 'MDXFlow - Markdown & Flowchart Editor'
   const pageDescription = description || 'A powerful Markdown/MDX editor with an integrated drag-and-drop flowchart builder using React Flow and Mermaid.'
-  const pageUrl = `${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}${path}`
+  const pageUrl = `${baseUrl}${path}`
   const pageImage = image || '/og-image.png'
 
   return {
@@ -118,7 +120,7 @@ export const structuredData = {
   '@type': 'SoftwareApplication',
   name: 'MDXFlow',
   description: 'A powerful Markdown/MDX editor with an integrated drag-and-drop flowchart builder using React Flow and Mermaid.',
-  url: process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000',
+  url: baseUrl,
   applicationCategory: 'ProductivityApplication',
   operatingSystem: 'Web Browser',
   offers: {

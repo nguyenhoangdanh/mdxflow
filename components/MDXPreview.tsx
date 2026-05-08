@@ -1,67 +1,19 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import rehypeSanitize from 'rehype-sanitize';
-import mermaid from 'mermaid';
+import dynamic from 'next/dynamic';
+
+const MermaidDiagram = dynamic(() => import('./MermaidDiagram'), {
+  ssr: false,
+  loading: () => <div className="animate-pulse bg-gray-200 h-32 rounded" />
+});
 
 interface MDXPreviewProps {
   content: string;
   className?: string;
-}
-
-// Mermaid component for MDX
-function MermaidComponent({ chart }: { chart: string }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [isClient, setIsClient] = useState(false);
-
-  useEffect(() => {
-    setIsClient(true);
-    
-    // Initialize Mermaid only on client
-    if (typeof window !== 'undefined') {
-      mermaid.initialize({
-        startOnLoad: true,
-        theme: 'default',
-        securityLevel: 'strict',
-        fontFamily: 'inherit',
-      });
-    }
-  }, []);
-
-  useEffect(() => {
-    if (!isClient || !ref.current || !chart) return;
-
-    const renderMermaid = async () => {
-      try {
-        const { svg } = await mermaid.render(`mermaid-${Date.now()}`, chart);
-        if (ref.current) {
-          ref.current.innerHTML = svg;
-        }
-      } catch (error) {
-        console.error('Mermaid rendering error:', error);
-        if (ref.current) {
-          ref.current.innerHTML = `<div class="text-red-500 p-4 border border-red-300 rounded">
-            Error rendering Mermaid diagram: ${error}
-          </div>`;
-        }
-      }
-    };
-
-    renderMermaid();
-  }, [chart, isClient]);
-
-  if (!isClient) {
-    return <div className="animate-pulse">Loading diagram...</div>;
-  }
-
-  return (
-    <div 
-      ref={ref}
-      className="my-4 p-4 border rounded-lg bg-gray-50 flex justify-center"
-    />
-  );
 }
 
 export default function MDXPreview({ content, className = '' }: MDXPreviewProps) {
@@ -117,16 +69,14 @@ export default function MDXPreview({ content, className = '' }: MDXPreviewProps)
         remarkPlugins={[remarkGfm]}
         rehypePlugins={[rehypeSanitize]}
         components={{
-          // Handle code blocks with Mermaid
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          code(props: any) {
+          code(props) {
             const { className, children, ...restProps } = props;
             const match = /language-(\w+)/.exec(className || '');
             const language = match ? match[1] : '';
             const isInline = !language;
             
             if (!isInline && language === 'mermaid') {
-              return <MermaidComponent chart={String(children).replace(/\n$/, '')} />;
+              return <MermaidDiagram chart={String(children).replace(/\n$/, '')} />;
             }
             
             return (
@@ -135,8 +85,6 @@ export default function MDXPreview({ content, className = '' }: MDXPreviewProps)
               </code>
             );
           },
-          
-          // Style tables
           table({ children }) {
             return (
               <div className="overflow-x-auto">
@@ -144,22 +92,6 @@ export default function MDXPreview({ content, className = '' }: MDXPreviewProps)
                   {children}
                 </table>
               </div>
-            );
-          },
-          
-          th({ children }) {
-            return (
-              <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                {children}
-              </th>
-            );
-          },
-          
-          td({ children }) {
-            return (
-              <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                {children}
-              </td>
             );
           },
         }}

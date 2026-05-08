@@ -1,9 +1,15 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import mermaid from 'mermaid';
+import dynamic from 'next/dynamic';
+
+// Lazy load mermaid to avoid SSR issues
+const MermaidDiagram = dynamic(() => import('./MermaidDiagram'), {
+  ssr: false,
+  loading: () => <div className="animate-pulse bg-gray-200 h-32 rounded" />
+});
 
 interface MarkdownPreviewProps {
   content: string;
@@ -12,54 +18,10 @@ interface MarkdownPreviewProps {
 
 export default function MarkdownPreview({ content, className = '' }: MarkdownPreviewProps) {
   const [isClient, setIsClient] = useState(false);
-  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setIsClient(true);
-    
-    // Initialize Mermaid only on client
-    if (typeof window !== 'undefined') {
-      mermaid.initialize({
-        startOnLoad: true,
-        theme: 'default',
-        securityLevel: 'loose',
-        fontFamily: 'inherit',
-      });
-    }
   }, []);
-
-  useEffect(() => {
-    if (!isClient || !containerRef.current) return;
-
-    // Re-render Mermaid diagrams when content changes
-    const renderMermaidDiagrams = async () => {
-      try {
-        const mermaidElements = containerRef.current?.querySelectorAll('.mermaid-diagram');
-        if (mermaidElements) {
-          for (let i = 0; i < mermaidElements.length; i++) {
-            const element = mermaidElements[i] as HTMLElement;
-            const code = element.textContent || '';
-            
-            try {
-              const { svg } = await mermaid.render(`mermaid-${Date.now()}-${i}`, code);
-              element.innerHTML = svg;
-            } catch (error) {
-              console.error('Mermaid rendering error:', error);
-              element.innerHTML = `<div class="text-red-500 p-4 border border-red-300 rounded">
-                Error rendering Mermaid diagram: ${error}
-              </div>`;
-            }
-          }
-        }
-      } catch (error) {
-        console.error('Error processing Mermaid diagrams:', error);
-      }
-    };
-
-    // Small delay to ensure DOM is updated
-    const timer = setTimeout(renderMermaidDiagrams, 100);
-    return () => clearTimeout(timer);
-  }, [content, isClient]);
 
   if (!isClient) {
     return (
@@ -70,12 +32,11 @@ export default function MarkdownPreview({ content, className = '' }: MarkdownPre
   }
 
   return (
-    <div ref={containerRef} className={`prose prose-gray max-w-none ${className}`}>
+    <div className={`prose prose-gray max-w-none ${className}`}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
         components={{
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          code(props: any) {
+          code(props) {
             const { className, children, ...restProps } = props;
             const match = /language-(\w+)/.exec(className || '');
             const language = match ? match[1] : '';
@@ -83,9 +44,9 @@ export default function MarkdownPreview({ content, className = '' }: MarkdownPre
             
             if (!isInline && language === 'mermaid') {
               return (
-                <div className="mermaid-diagram my-4 p-4 border rounded-lg bg-gray-50">
-                  {String(children).replace(/\n$/, '')}
-                </div>
+                <MermaidDiagram
+                  chart={String(children).replace(/\n$/, '')}
+                />
               );
             }
             
